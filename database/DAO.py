@@ -50,6 +50,7 @@ class DAO():
         cursor.close()
         conn.close()
 
+    # Passi l'idMap in modo da salvare l'oggetto artObject a partire dal suo id
     @staticmethod
     def getAllEdges(idMapAO):
         conn = DBConnect.get_connection()

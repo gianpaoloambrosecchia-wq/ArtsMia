@@ -42,6 +42,7 @@ class Model:
 
     def buildGraph(self):
         # Aggiunge i nodi al grafo
+        self._graph.clear()
         self._graph.add_nodes_from(self._nodes)
 
         # Aggiunge gli archi al grafo
