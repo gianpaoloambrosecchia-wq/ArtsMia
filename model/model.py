@@ -1,3 +1,5 @@
+import copy
+
 import networkx as nx
 
 from database.DAO import DAO
@@ -13,6 +15,43 @@ class Model:
         self._nodes = DAO.getAllNodes()
         for n in self._nodes:
             self._idMapAO[n.object_id] = n
+        self._optPath=[]
+        self._optCost = 0
+
+    def getOpthPath(self, source, lun):
+        parziale = [source]
+
+        for n in self._graph.neighbors(source):
+            if n.classification == parziale[-1].classification:
+                parziale.append(n)
+                self._ricorsione(parziale,lun)
+                parziale.pop() #backtracking
+        return self._optPath, self._optCost
+
+    def _ricorsione(self, parziale, lun):
+        if len(parziale) == lun:
+            # Condizione di terminazione, allora parziale è lunga esattamente lun
+            # per cui verifico che questa parziale sia meglio del mio best (condizione di ottimalità)
+            # ed in ogni caso esco
+            if self._costoPath(parziale) > self._optCost:
+                self._optCost = self._costoPath(parziale)
+                self._optPath = copy.deepcopy(parziale)
+            return
+
+        # Se arrivo qui posso ancora aggiungere nodi, ciclo sui vicini dell'ultimo nodo aggiunto
+        for n in self._graph.neighbors(parziale[-1]):
+            if parziale[-1].classification == n.classification:
+                parziale.append(n)
+                self._ricorsione(parziale,lun)
+                parziale.pop()
+
+
+    def _costoPath(self, path):
+        costo = 0
+        for i in range(0, len(path)-1):
+            # Come accedere al peso di un arco: nodoPartenza, nodoArrivo, "weight"
+            costo += self._graph[path[i]][path[i+1]]["weight"]
+        return costo
 
     def getInfoCompConnessa(self, id_oggetto):
         # Cercare la componente connessa che contiene l'oggetto con id_oggetto
@@ -71,3 +110,6 @@ class Model:
     def hasNode(self, id_oggetto):
         # Se l'id_oggetto esiste ritorna True senno False
         return id_oggetto in self._idMapAO
+
+    def getNodeFromId(self, id_oggetto):
+        return self._idMapAO[id_oggetto]

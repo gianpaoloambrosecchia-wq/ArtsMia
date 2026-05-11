@@ -11,7 +11,7 @@ class Controller:
     def handleAnalizzaOggetti(self, e):
         self._model.buildGraph()
         self._view.txt_result.controls.clear()
-        self._view.txt_result.controls.append(ft.Text("Grafo correttamente creato"))
+        self._view.txt_result.controls.append(ft.Text("Grafo correttamente creato", color="green"))
         self._view.txt_result.controls.append(
             ft.Text(f"Il grafo contiene {self._model.getNumNodes()} nodi e {self._model.getNumEdges()} archi")
         )
@@ -58,6 +58,50 @@ class Controller:
         self._view.txt_result.controls.append(
             ft.Text(f"La componente connessa contenente l'oggetto con id {idOggetto} è composta di {sizeCompConn} nodi" , color="green")
         )
+
+        # Una volta trovata la componenete connessa posso sbloccare questi due elementi
+        self._view._ddLun.disabled=False
+        self._view._btnCerca.disabled=False
+
+        # Dalla traccia dice di considerare da 2 alla lunghezza della componente connessa
+        # quindi riempio in questo modo il dropdown
+        lunValues = range(2, sizeCompConn)
+        #for v in lunValues:
+            #self._view._ddLun.options.append(ft.dropdown.Option(v))
+
+        # Questa funzione a partire da una lista crea un'altra lista da poter direttamente inserire nel dropdown
+        lunValuesDD = map(lambda x: ft.dropdown.Option(x), lunValues)
+        self._view._ddLun.options = lunValuesDD
+
         self._view.update_page()
+
+
+    def handleCerca(self, e):
+        source = self._model.getNodeFromId(self._view._txtIdOggetto.value)
+        lun = self._view._ddLun.value
+
+        if lun is None:
+            self._view.txt_result.controls.clear()
+            self._view.txt_result.controls.append(
+                ft.Text("Attenzione selezionare un valore di lunghezza", color="red")
+            )
+            self._view.update_page()
+            return
+
+        lunInt = int(lun)
+
+        path, cost = self._model.getOptPath(source, lunInt)
+        self._view.txt_result.controls.clear()
+        self._view.txt_result.controls.append(
+            ft.Text(f"Ho trovato un cammino che parte da {source} che ha un peso totale pari a {cost}", color="green")
+        )
+        self._view.txt_result.controls.append(
+            ft.Text("Di seguito i nodi che compongono questo cammino:")
+        )
+        for p in path:
+            self._view.txt_result.controls.append(ft.Text(p))
+
+        self._view.update_page()
+
 
 
